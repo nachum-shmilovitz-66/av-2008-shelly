@@ -84,7 +84,7 @@
 <h3 id="tools">כלים</h3>
 <div class="scroll"><table>
   <tr><th>כלי</th><th>שימוש</th></tr>
-  <tr><td>תחנת הלחמה (YIHUA 926 LED IV) עם שני תפסני "יד שלישית", בדיל ללא עופרת ומנקה חוד</td><td>הלחמת הכבל לחוטי ה-Shelly</td></tr>
+  <tr><td>מלחם ובדיל. השתמשתי בתחנת הלחמה YIHUA 926 LED IV עם שני תפסני "יד שלישית", אבל מלחם רגיל מספיק</td><td>הלחמת הכבל לחוטי ה-Shelly</td></tr>
   <tr><td>מקור חום לשרוולים המתכווצים (אקדח חום, מצית או צד המלחם)</td><td>כיווץ השרוולים על החיבורים</td></tr>
   <tr><td>מולטימטר (ANENG 681)</td><td>מתח בין בורג 2 לבורג 3, רציפות לבדיקת OUT1, מצב דיודה לירוק מול השחור</td></tr>
   <tr><td>סט מברגים עדינים (DELIXI)</td><td>ברגי המהדקים ברכזת ומכסה הקופסה</td></tr>
@@ -243,6 +243,7 @@
   <tr><td>ערוץ 1, Auto OFF</td><td>כבוי</td><td>שנייה אחת</td></tr>
   <tr><td>ערוץ 2, מצב כניסה + הדלקה</td><td>follow + לפי המתג</td><td>detached + off</td></tr>
   <tr><td>כניסות 1 ו-2</td><td>Switch, בלי שם</td><td>Switch, Armed / Alarm</td></tr>
+  <tr><td>מד מתח (החוט הלבן על +12V)</td><td>לא הוגדר</td><td>נוסף בשם "Panel 12V"; מראה 13.0V כשה-220V מחובר</td></tr>
 </table></div>
 <div class="callout danger"><strong>למה Detached קריטי</strong><p>במצב Toggle, כניסת <code>ON</code> הייתה מפעילה את OUT1, והרכזת הייתה נדרכת ומתנטרלת מעצמה.</p></div>
 <h3>איפה ההגדרות באפליקציה (גרסה 3.77)</h3>
@@ -266,13 +267,14 @@
   <tr><td>אזעקה</td><td>Input State 2, Turn on, Trigger</td><td>Notify action: "אזעקה הופעלה!"</td><td>עובדת</td></tr>
   <tr><td>דריכה</td><td>Input State 1, Turn on, Trigger</td><td>Notify action: "האזעקה דרוכה"</td><td>עוד לא הוגדרה</td></tr>
   <tr><td>ניטרול</td><td>Input State 1, Turn off, Trigger</td><td>Notify action: "האזעקה נוטרלה"</td><td>עוד לא הוגדרה</td></tr>
+  <tr><td>הפסקת חשמל</td><td>מד המתח מתחת לכ-12.6V</td><td>Notify action: "הרכזת על סוללה: אין 220V"</td><td>עוד לא הוגדרה</td></tr>
 </table></div>
 <p>נבדק: כניסת Armed עוברת ל-ON כשנייה אחרי לחיצת הדריכה, וחוזרת ל-OFF אחרי לחיצת הניטרול. בדריכה הראשונה גם כניסת Alarm הראתה ON למשך כשתי שניות, אז כדאי לשים לב להתראת "אזעקה" שגויה בזמן דריכה.</p>
 <div class="gallery phones">
   <figure><img src="images/17-app-scenes.jpg" alt="רשימת הסצנות עם סצנת התראת האזעקה" loading="lazy"><figcaption>סצנת התראת האזעקה</figcaption></figure>
   <figure><img src="images/18-app-dashboard.jpg" alt="כרטיס האזעקה בלוח הבקרה של האפליקציה" loading="lazy"><figcaption>כרטיס האזעקה בלוח הבקרה</figcaption></figure>
 </div>
-<figure class="video"><video controls muted playsinline preload="metadata" poster="video/alarm-demo-poster.jpg" aria-label="הקלטת מסך של התראת האזעקה באפליקציית Shelly"><source src="video/alarm-demo.mp4" type="video/mp4"></video><figcaption>הקלטת מסך מהטלפון (23 שניות, בלי קול): סצנת האזעקה, כרטיס האזעקה, והתראת "Alarm!" שמגיעה.</figcaption></figure>
+<figure class="video"><video controls playsinline preload="metadata" poster="video/alarm-demo-poster.jpg" aria-label="הקלטת מסך של התראת האזעקה באפליקציית Shelly"><source src="video/alarm-demo.mp4?v=2" type="video/mp4"></video><figcaption>הקלטת מסך מהטלפון (23 שניות, עם קול): סצנת האזעקה, כרטיס האזעקה, והתראת "Alarm!" שמגיעה.</figcaption></figure>
 
 <h2 id="limits">9. מה הפתרון לא נותן</h2>
 <p>ה-Shelly מחקה מתג מפתח אחד ושתי נוריות סטטוס. כל השאר נשאר בלוח המקשים, שמדבר עם הרכזת בערוץ נתונים סגור (<code>YE</code> / <code>OR</code>).</p>
@@ -282,7 +284,7 @@
   <li>אין דריכה עם עקיפת אזורים מסוימים או דריכה חלקית, כמו בלוח המקשים (למשל 075).</li>
   <li>לא רואים לפני הדריכה אם אזור פתוח. הרכזת פשוט לא נדרכת, ומבינים את זה רק כשלא מגיעה התראת "דרוך".</li>
   <li>אין פקודה נפרדת לדריכה ולניטרול: כל לחיצה מחליפה מצב.</li>
-  <li>אין התראות על טמפר, תקלה, סוללה חלשה או תקלה בקו הטלפון. התראה על הפסקת חשמל אפשרית דרך כניסת מד המתח, שמחוברת אבל עוד לא הוגדרה; היא גם דורשת שהראוטר בבית ימשיך לקבל חשמל.</li>
+  <li>אין התראות על טמפר, תקלה, סוללה חלשה או תקלה בקו הטלפון. התראה על הפסקת חשמל אפשרית דרך מד המתח (הוגדר ב-16 באוקטובר 2026), אבל היא גם דורשת שהראוטר בבית ימשיך לקבל חשמל.</li>
   <li>אין יומן אירועים של הרכזת, רק יומן הפעילות של ה-Shelly (מתי הכניסות השתנו).</li>
   <li>אין קוד משתמש: כל מי שיש לו גישה לחשבון ה-Shelly יכול לנטרל.</li>
   <li>שליטה מרחוק והתראות דורשות Wi-Fi, אינטרנט ואת הענן של Shelly.</li>

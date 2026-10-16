@@ -84,7 +84,7 @@
 <h3 id="tools">Tools</h3>
 <div class="scroll"><table>
   <tr><th>Tool</th><th>Used for</th></tr>
-  <tr><td>Soldering station (YIHUA 926 LED IV) with two helping-hand clips, lead-free solder and a tip cleaner</td><td>Soldering the cable to the Shelly leads</td></tr>
+  <tr><td>Soldering iron and solder. I used a YIHUA 926 LED IV station with two helping-hand clips, but a regular soldering iron is enough</td><td>Soldering the cable to the Shelly leads</td></tr>
   <tr><td>A heat source for the heat-shrink (heat gun, lighter or the side of the iron)</td><td>Shrinking the sleeves over the joints</td></tr>
   <tr><td>Multimeter (ANENG 681)</td><td>Voltage between screws 2 and 3, continuity for the OUT1 check, diode mode for green against black</td></tr>
   <tr><td>Precision screwdriver set (DELIXI)</td><td>The panel's terminal screws and the box lid</td></tr>
@@ -243,6 +243,7 @@
   <tr><td>Channel 1, Auto OFF</td><td>off</td><td>1 second</td></tr>
   <tr><td>Channel 2, input mode + power-on</td><td>follow + match the switch</td><td>detached + off</td></tr>
   <tr><td>Inputs 1 and 2</td><td>Switch, no name</td><td>Switch, Armed / Alarm</td></tr>
+  <tr><td>Voltmeter (white wire on +12V)</td><td>Not set up</td><td>Added as "Panel 12V"; reads 13.0V with the 220V on</td></tr>
 </table></div>
 <div class="callout danger"><strong>Why Detached is critical</strong><p>In Toggle mode, the <code>ON</code> input would switch OUT1, and the panel would arm and disarm by itself.</p></div>
 <h3>Where these settings are in the app (version 3.77)</h3>
@@ -266,13 +267,14 @@
   <tr><td>Alarm</td><td>Input State 2, Turn on, Trigger</td><td>Notify action: "Alarm triggered!"</td><td>Working</td></tr>
   <tr><td>Armed</td><td>Input State 1, Turn on, Trigger</td><td>Notify action: "Alarm armed"</td><td>Not set up yet</td></tr>
   <tr><td>Disarmed</td><td>Input State 1, Turn off, Trigger</td><td>Notify action: "Alarm disarmed"</td><td>Not set up yet</td></tr>
+  <tr><td>Power cut</td><td>Voltmeter below about 12.6V</td><td>Notify action: "Panel on battery: 220V lost"</td><td>Not set up yet</td></tr>
 </table></div>
 <p>Tested: the Armed input switches on about a second after the arming tap and off after the disarming tap. On the first arming, the Alarm input also read on for about 2 seconds, so watch for a false "alarm" notification when arming.</p>
 <div class="gallery phones">
   <figure><img src="images/17-app-scenes.jpg" alt="The scenes list with the alarm notification scene" loading="lazy"><figcaption>The alarm notification scene</figcaption></figure>
   <figure><img src="images/18-app-dashboard.jpg" alt="The alarm card on the app dashboard" loading="lazy"><figcaption>The alarm card on the dashboard</figcaption></figure>
 </div>
-<figure class="video"><video controls muted playsinline preload="metadata" poster="video/alarm-demo-poster.jpg" aria-label="Screen recording of the alarm notification in the Shelly app"><source src="video/alarm-demo.mp4" type="video/mp4"></video><figcaption>Screen recording from the phone (23 seconds, no sound): the alarm scene, the dashboard card, and the "Alarm!" notification arriving.</figcaption></figure>
+<figure class="video"><video controls playsinline preload="metadata" poster="video/alarm-demo-poster.jpg" aria-label="Screen recording of the alarm notification in the Shelly app"><source src="video/alarm-demo.mp4?v=2" type="video/mp4"></video><figcaption>Screen recording from the phone (23 seconds, with sound): the alarm scene, the dashboard card, and the "Alarm!" notification arriving.</figcaption></figure>
 
 <h2 id="limits">9. What this solution can't do</h2>
 <p>The Shelly acts like one key switch and two status lights. Everything else stays on the keypad, which talks to the panel over a closed data bus (<code>YE</code> / <code>OR</code>).</p>
@@ -282,7 +284,7 @@
   <li>You can't arm with specific zones bypassed, or part-arm, as the keypad can (for example 075).</li>
   <li>You can't see before arming whether a zone is open. The panel simply doesn't arm, and you only notice because no "armed" notification arrives.</li>
   <li>There are no separate arm and disarm commands: every tap toggles.</li>
-  <li>No alerts for tamper, faults, low battery or the phone line. A power-cut alert is possible through the voltmeter input, which is wired but not set up yet; it also needs the home router to stay powered.</li>
+  <li>No alerts for tamper, faults, low battery or the phone line. A power-cut alert is possible through the voltmeter (set up on 16 Oct 2026), but it also needs the home router to stay powered.</li>
   <li>No panel event log, only the Shelly's activity log (when the inputs changed).</li>
   <li>No user code: anyone with access to the Shelly account can disarm.</li>
   <li>Remote control and notifications need Wi-Fi, internet and the Shelly cloud.</li>
