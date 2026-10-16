@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AV-2008 Alarm + Shelly</title>
+<meta name="description" content="How an old AV-GAD AV-2008 alarm panel got phone control and notifications with a Shelly Plus Uni: parts, wiring, soldering, setup and lessons learned.">
+<link rel="stylesheet" href="style.css?v=7">
+<script src="theme.js?v=3"></script>
+<script src="search.js?v=2"></script>
+<link rel="alternate" hreflang="he" href="index.html">
+</head>
+<body>
+
+<header>
+  <div class="topbar"><button class="theme-toggle" type="button" data-dark="Dark mode" data-light="Light mode" aria-label="Dark mode"></button><a href="index.html" lang="he" dir="rtl">עברית</a></div>
+  <h1>AV-2008 alarm with Shelly: the project</h1>
+  <p class="sub">Arming, disarming and notifications from the phone for an old AV-GAD EasyLoader AV-2008 alarm panel, using a Shelly Plus Uni Wi-Fi module.</p>
+  <p class="meta">By Shmilovitz · October 2026. Planned and built with the help of Claude.</p>
+  <div id="search" role="search" data-answers="Answers" data-inpage="On this page" data-goto="Go to:" data-none="No match. Try other words, for example: screw +12V, notification, why not armed.">
+    <input type="search" placeholder="Search or ask a question, for example: which screw is +12V?" aria-label="Search this page" autocomplete="off">
+    <div class="search-results" hidden></div>
+  </div>
+  <p class="search-hint">Works in the browser only, with no AI service. Press / to search.</p>
+</header>
+
+<div class="callout ok" id="why"><strong>Why this project</strong><p>More than once the alarm was armed and went off, the system called me, and I had no way to disarm it from where I was. This panel model (AV-2008, not the AV-2008D) cannot be disarmed during that phone call. Now it disarms from the app, from anywhere.</p><p>The final push came from a message in the WhatsApp group of the neighbourhood where I live, after alarms went off on a Saturday morning (translated from Hebrew; the street name is removed):</p><div class="chat"><p class="who">A neighbour, in the neighbourhood WhatsApp group</p><p>Good morning, what's going on with the alarms first thing on Saturday morning on […] Street???</p><p>Whoever runs a home alarm, please make sure you can monitor it and stop it remotely when you're not home. Isn't that the whole idea?</p></div></div>
+
+<p>The panel now arms and disarms from the Shelly app, and the phone gets a notification when the alarm goes off. The module connects to three existing points on the panel (<a href="#wiring">wiring plan</a>): the key-switch input, the "armed" output and the "alarm" output. The panel itself was not modified. What it can't do is listed in <a href="#limits">section 9</a>. Please read the <a href="#disclaimer">disclaimer</a> before using any of it.</p>
+
+<h3 id="time">Time spent</h3>
+<div class="scroll"><table>
+  <tr><th>Stage</th><th>Time</th></tr>
+  <tr><td>Investigating with Claude how to disarm remotely with the existing panel, before the Shelly idea</td><td>About 5 hours</td></tr>
+  <tr><td>Planning the Shelly build with Claude, before buying anything</td><td>About 5 hours</td></tr>
+  <tr><td>Waiting for the parts from AliExpress</td><td>About 1 week</td></tr>
+  <tr><td>Building the solution, from start to finish</td><td>About 5 hours</td></tr>
+</table></div>
+
+<nav class="toc">
+  <ol>
+    <li><a href="#idea">The idea</a></li>
+    <li><a href="#parts">Parts and tools</a></li>
+    <li><a href="#wiring">Wiring plan</a></li>
+    <li><a href="#soldering">Soldering</a></li>
+    <li><a href="#terminals">Finding the panel terminals</a></li>
+    <li><a href="#install">Installing in the cabinet</a></li>
+    <li><a href="#setup">Shelly setup</a></li>
+    <li><a href="#notify">Phone notifications</a></li>
+    <li><a href="#limits">What it can't do</a></li>
+    <li><a href="#problems">Problems and fixes</a></li>
+    <li><a href="#tips">Tips</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<h2 id="idea">1. The idea</h2>
+<p>The panel is an AV-GAD EasyLoader AV-2008 from 2005, with no Wi-Fi and no app. A Shelly Plus Uni connects to points the panel already has (where they are: <a href="#terminals">section 5</a>):</p>
+<div class="scroll"><table>
+  <tr><th>What</th><th>How</th></tr>
+  <tr><td>Arm / disarm</td><td>Shelly output 1 gives a 1-second pulse between <code>KEY</code> and <code>-V</code>, like an external key switch. Each pulse toggles the state.</td></tr>
+  <tr><td>"Armed" state</td><td>Input 1 reads the panel's <code>ON</code> output, which switches to minus while the panel is armed.</td></tr>
+  <tr><td>"Alarm!"</td><td>Input 2 reads the <code>A1</code> output, which switches to minus during an alarm.</td></tr>
+  <tr><td>Power</td><td>The Shelly runs from the panel's 12V, including from its battery during a power cut.</td></tr>
+</table></div>
+<p>Why the Plus Uni: it has 2 isolated outputs, 2 inputs and Wi-Fi, and runs on 12V with no extra supply. Because <code>KEY</code> toggles, you cannot tell what a tap did without the status input.</p>
+
+<h2 id="parts">2. Parts and tools</h2>
+<p>Everything was ordered online. The joints were <a href="#soldering">soldered</a> and insulated with heat-shrink sleeves.</p>
+<div class="scroll"><table>
+  <tr><th>Part</th><th>Qty</th><th>Role</th><th>Price (AliExpress)</th></tr>
+  <tr><td>Shelly Plus Uni</td><td>1</td><td>The module: 2 isolated outputs, 2 inputs, Wi-Fi</td><td>About ₪66</td></tr>
+  <tr><td>Junction box, clear lid with mounting ears (100×68×50 mm)</td><td>1</td><td>Holds the Shelly outside the steel cabinet, so Wi-Fi works</td><td>About ₪3–8</td></tr>
+  <tr><td>6-core cable UL2464, 22 AWG</td><td>5 m (about 1.5 m used)</td><td>From the box to the panel terminals</td><td>About US$9.44 + US$4.86 shipping</td></tr>
+  <tr><td>Heat-shrink sleeve kit</td><td>1</td><td>Insulating the joints and the ends of unused wires</td><td>Bought later; not in the order list</td></tr>
+  <tr><th>Total</th><th></th><th></th><th>About ₪125</th></tr>
+</table></div>
+<p class="meta">Prices are from the AliExpress listings in early October 2026 and change often; dollar prices are counted at about ₪3.7 per US$. <strong>The tools are not included</strong>; they are listed <a href="#tools">below</a>.</p>
+<div class="gallery">
+  <figure><img src="images/01-parts-box-and-shelly.jpg" alt="The junction box and the Shelly Plus Uni as delivered" loading="lazy"><figcaption>The junction box and the Shelly Plus Uni</figcaption></figure>
+  <figure><img src="images/03-cable-six-cores.jpg" alt="The cable end with its six cores" loading="lazy"><figcaption>The 6 cores: black, red, green, brown, yellow, white</figcaption></figure>
+</div>
+
+<h3 id="tools">Tools</h3>
+<div class="scroll"><table>
+  <tr><th>Tool</th><th>Used for</th></tr>
+  <tr><td>Soldering station (YIHUA 926 LED IV) with two helping-hand clips, lead-free solder and a tip cleaner</td><td>Soldering the cable to the Shelly leads</td></tr>
+  <tr><td>A heat source for the heat-shrink (heat gun, lighter or the side of the iron)</td><td>Shrinking the sleeves over the joints</td></tr>
+  <tr><td>Multimeter (ANENG 681)</td><td>Voltage between screws 2 and 3, continuity for the OUT1 check, diode mode for green against black</td></tr>
+  <tr><td>Precision screwdriver set (DELIXI)</td><td>The panel's terminal screws and the box lid</td></tr>
+  <tr><td>Wire stripper (DuraTech) and electrician's scissors with stripping notches</td><td>Stripping the cores and cutting wires</td></tr>
+  <tr><td>Utility knife (Stanley)</td><td>Cutting the cable's outer sheath</td></tr>
+  <tr><td>Drill</td><td>The cable hole in the box and the wall screws</td></tr>
+  <tr><td>Flashlight and cable ties</td><td>Reading the labels on the board; strain relief in the box</td></tr>
+</table></div>
+<div class="gallery tools">
+  <figure><img src="images/19-tool-soldering-station.jpg" alt="Soldering station with helping-hand clips and a reel of solder" loading="lazy"><figcaption>Soldering station with helping-hand clips</figcaption></figure>
+  <figure><img src="images/21-tool-multimeter.jpg" alt="ANENG 681 multimeter with test leads" loading="lazy"><figcaption>Multimeter</figcaption></figure>
+  <figure><img src="images/20-tool-screwdrivers-and-stripper.jpg?v=2" alt="Precision screwdriver set and a wire stripper" loading="lazy"><figcaption>Screwdriver set and wire stripper</figcaption></figure>
+  <figure><img src="images/22-tool-scissors-and-knife.jpg?v=2" alt="Electrician's scissors and a utility knife" loading="lazy"><figcaption>Electrician's scissors and utility knife</figcaption></figure>
+</div>
+
+<h2 id="wiring">3. Wiring plan</h2>
+<p>5 cores connect 8 Shelly wires to 5 <a href="#terminals">panel terminals</a>; the sixth core is a spare. The colours were chosen so a likely mistake does no harm: the green core is the spare, because the Shelly's green wire goes to <code>-V</code>.</p>
+<div class="scroll"><table>
+  <tr><th>Cable core</th><th>Shelly wires</th><th>Panel terminal</th></tr>
+  <tr><td>Red</td><td>Red (VAC1) + white (ANALOG IN)</td><td><code>+12V</code>, screw 2</td></tr>
+  <tr><td>Black</td><td>Black (VAC2) + green (GND) + one OUT1 wire</td><td><code>-V</code>, screw 3</td></tr>
+  <tr><td>White</td><td>The other OUT1 wire</td><td><code>KEY</code>, top screw of the left block</td></tr>
+  <tr><td>Yellow</td><td>Orange (IN1)</td><td><code>ON</code>, screw 16</td></tr>
+  <tr><td>Brown</td><td>Brown (IN2)</td><td><code>A1</code>, screw 15</td></tr>
+  <tr><td>Green</td><td>Not connected</td><td>Not connected</td></tr>
+</table></div>
+<figure class="diagram"><svg viewBox="0 0 820 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring diagram from AV-2008 panel to Shelly Plus Uni" font-family="Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="820" height="470" fill="#ffffff"/>
+  
+  <rect x="20" y="30" width="230" height="400" rx="10" fill="#eef1f4" stroke="#1b1f24" stroke-width="2"/>
+  <text x="135" y="58" text-anchor="middle" font-size="16" font-weight="700" fill="#1b1f24">AV-2008 panel</text>
+  <text x="135" y="78" text-anchor="middle" font-size="12" fill="#5b6470">(inside steel box)</text>
+  <text x="40" y="112" font-size="11" fill="#5b6470">left block</text>
+  <text x="40" y="190" font-size="11" fill="#5b6470">bottom strip</text>
+  
+  <g font-size="14" font-weight="700" fill="#1b1f24">
+    <rect x="200" y="118" width="50" height="26" rx="4" fill="#7cb342" stroke="#1b1f24"/><text x="190" y="136" text-anchor="end">KEY</text>
+    <rect x="200" y="198" width="50" height="26" rx="4" fill="#7cb342" stroke="#1b1f24"/><text x="190" y="216" text-anchor="end">+12V</text>
+    <rect x="200" y="252" width="50" height="26" rx="4" fill="#7cb342" stroke="#1b1f24"/><text x="190" y="270" text-anchor="end">-V</text>
+    <rect x="200" y="326" width="50" height="26" rx="4" fill="#7cb342" stroke="#1b1f24"/><text x="190" y="344" text-anchor="end">ON</text>
+    <rect x="200" y="376" width="50" height="26" rx="4" fill="#7cb342" stroke="#1b1f24"/><text x="190" y="394" text-anchor="end">A1</text>
+  </g>
+  <g font-size="11" fill="#5b6470">
+    <text x="40" y="350">active while armed</text>
+    <text x="40" y="400">active in alarm</text>
+  </g>
+
+  
+  <rect x="590" y="30" width="210" height="400" rx="10" fill="#e3edf9" stroke="#1b1f24" stroke-width="2"/>
+  <text x="695" y="58" text-anchor="middle" font-size="16" font-weight="700" fill="#1b1f24">Shelly Plus Uni</text>
+  <text x="695" y="78" text-anchor="middle" font-size="12" fill="#5b6470">(plastic box, outside)</text>
+  <g font-size="13" fill="#1b1f24">
+    <text x="610" y="136">OUT1 (wire a)</text>
+    <text x="610" y="176">OUT1 (wire b)</text>
+    <text x="610" y="216">VAC1 · red</text>
+    <text x="610" y="241">ANALOG IN · white</text>
+    <text x="610" y="270">VAC2 · black</text>
+    <text x="610" y="300">GND · green</text>
+    <text x="610" y="344">IN1 · orange</text>
+    <text x="610" y="394">IN2 · brown</text>
+  </g>
+
+  
+  <g fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    
+    <path d="M250 131 H600" stroke="#222"/>
+    
+    <path d="M600 171 H430 V265 H250" stroke="#222" stroke-dasharray="10 5"/>
+    
+    <path d="M600 211 H250" stroke="#d32f2f"/>
+    
+    <path d="M600 236 H470 V211" stroke="#9e9e9e" stroke-dasharray="3 5"/>
+    
+    <path d="M600 265 H250" stroke="#222"/>
+    
+    <path d="M600 295 H390 V265" stroke="#2e7d32"/>
+    
+    <path d="M600 339 H250" stroke="#ef6c00"/>
+    
+    <path d="M600 389 H250" stroke="#6d4c41"/>
+  </g>
+  <g fill="#1b1f24">
+    <circle cx="470" cy="211" r="5"/>
+    <circle cx="430" cy="265" r="5"/>
+    <circle cx="390" cy="265" r="5"/>
+  </g>
+  <g font-size="11" fill="#5b6470">
+    <text x="300" y="124">1-second pulse = arm / disarm</text>
+    <text x="440" y="190">OUT1 b to -V</text>
+    <text x="478" y="230">optional</text>
+    <text x="300" y="332">"Armed" status</text>
+    <text x="300" y="382">"Alarm" status</text>
+  </g>
+  <text x="410" y="455" text-anchor="middle" font-size="12" fill="#5b6470">All three -V wires may share one -V screw, or use both -V screws. Unused Shelly wires: insulate each one separately.</text>
+</svg><figcaption>Wiring diagram. Solid black = OUT1 wire a and VAC2. Dashed black = OUT1 wire b. Dotted grey = optional voltmeter.</figcaption></figure>
+<p>Unused Shelly wires are each insulated on their own: yellow, blue, grey (+5V), purple, and both OUT2 wires. The antenna (a thin black wire with a sleeve on its tip) is left untouched. It doesn't matter which OUT1 wire goes where: OUT1 is an isolated switch that works both ways.</p>
+
+<h2 id="soldering">4. Soldering</h2>
+<p>The cable was soldered to the Shelly leads at a desk, and the finished unit was installed afterwards.</p>
+<ol>
+  <li><strong>Identify the wires.</strong> There are 10 coloured leads, stripped and tinned at the factory, plus 4 black output wires. The order matches the drawing on the box.</li>
+  <li><strong>Check green against black.</strong> It measured about 500 Ω. That is normal: there is a rectifier diode between them, so the test is done in diode mode.</li>
+  <li><strong>Each joint:</strong> slide the heat-shrink on first, then twist, solder and shrink. The <code>-V</code> joint, with 4 wires, needs a wider sleeve.</li>
+  <li><strong>Unused wires:</strong> each one gets its own cap.</li>
+  <li><strong>Into the box:</strong> the Shelly goes in the box, the cable leaves through a drilled hole in the bottom, and the lid closes.</li>
+</ol>
+<p><em>A note on the photos: these joints are far from a professional finish, but they hold, they are fully insulated, and everything works.</em></p>
+<div class="gallery">
+  <figure><img src="images/04-shelly-leads.jpg" alt="Shelly leads stripped, before soldering" loading="lazy"><figcaption>The Shelly leads before soldering</figcaption></figure>
+  <figure><img src="images/05-soldering-in-progress.jpg" alt="Solder joints with heat-shrink not yet shrunk" loading="lazy"><figcaption>Half-way: brown and orange soldered</figcaption></figure>
+  <figure><img src="images/06-soldering-done.jpg" alt="All joints shrunk and unused wires capped" loading="lazy"><figcaption>All joints shrunk, unused wires capped</figcaption></figure>
+  <figure><img src="images/07-box-open.jpg" alt="The Shelly inside the junction box, lid open" loading="lazy"><figcaption>In the box, lid open</figcaption></figure>
+  <figure><img src="images/08-box-closed.jpg" alt="The junction box closed" loading="lazy"><figcaption>The box closed</figcaption></figure>
+</div>
+
+<h2 id="terminals">5. Finding the panel terminals</h2>
+<p><strong>Screw 1 on the bottom strip is Earth (⏚), not +12V.</strong> The first guide assumed the strip started with +12V, and the meter showed no voltage between screws 1 and 2.</p>
+<p>How it was found:</p>
+<ol>
+  <li>The wiring diagram in AV-GAD's English manual (v2.17, page 62) shows an Earth terminal for the cold-water pipe before +12V.</li>
+  <li>The printed Hebrew manual (v2.12, page 11) shows an earth line from the left-most screw, and says the earth must go to the earth screw.</li>
+  <li>The board has a green-yellow wire on the left of the strip.</li>
+  <li>Between screws 2 and 3 the meter read about 12V, with plus on screw 2.</li>
+</ol>
+<div class="scroll"><table class="ltr">
+  <tr><th>Screw</th><th>1</th><th>2</th><th>3</th><th>4–11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th><th>17</th></tr>
+  <tr><td>Terminal</td><td>⏚ Earth</td><td><code>+12V</code></td><td><code>-V</code></td><td>zones 1–8</td><td><code>-V</code></td><td><code>YE</code></td><td><code>OR</code></td><td><code>A1</code></td><td><code>ON</code></td><td><code>SLO</code></td></tr>
+</table></div>
+<p><code>KEY</code> is the top screw of the vertical block on the left (marked KEY STR on the board).</p>
+<figure class="diagram"><svg viewBox="0 0 900 325" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bottom terminal strip with screw numbers and names"><image href="images/09b-panel-bottom-strip.jpg" x="0" y="0" width="900" height="270"/><rect x="0" y="270" width="900" height="55" fill="#ffffff"/><g font-family="Helvetica, Arial, sans-serif" font-weight="700" text-anchor="middle"><circle cx="145" cy="240" r="13" fill="#ffd400"/><text x="145" y="245" font-size="13" fill="#111">1</text><rect x="126" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="145" y="291.5" font-size="9.5" fill="#3a414a">EARTH</text><circle cx="185" cy="240" r="13" fill="#ffd400"/><text x="185" y="245" font-size="13" fill="#111">2</text><rect x="166" y="277" width="38" height="20" rx="4" fill="#ffd400" stroke="#9aa3ad" stroke-width="0.8"/><text x="185" y="291.5" font-size="11.5" fill="#111">+12V</text><rect x="170" y="303" width="30" height="7" rx="3" fill="#d32f2f" stroke="#555" stroke-width="0.6"/><circle cx="226" cy="240" r="13" fill="#ffd400"/><text x="226" y="245" font-size="13" fill="#111">3</text><rect x="207" y="277" width="38" height="20" rx="4" fill="#ffd400" stroke="#9aa3ad" stroke-width="0.8"/><text x="226" y="291.5" font-size="11.5" fill="#111">-V</text><rect x="211" y="303" width="30" height="7" rx="3" fill="#222" stroke="#555" stroke-width="0.6"/><circle cx="266" cy="240" r="13" fill="#ffd400"/><text x="266" y="245" font-size="13" fill="#111">4</text><rect x="247" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="266" y="291.5" font-size="11.5" fill="#3a414a">Z1</text><circle cx="306" cy="240" r="13" fill="#ffd400"/><text x="306" y="245" font-size="13" fill="#111">5</text><rect x="287" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="306" y="291.5" font-size="11.5" fill="#3a414a">Z2</text><circle cx="347" cy="240" r="13" fill="#ffd400"/><text x="347" y="245" font-size="13" fill="#111">6</text><rect x="328" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="347" y="291.5" font-size="11.5" fill="#3a414a">Z3</text><circle cx="388" cy="240" r="13" fill="#ffd400"/><text x="388" y="245" font-size="13" fill="#111">7</text><rect x="369" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="388" y="291.5" font-size="11.5" fill="#3a414a">Z4</text><circle cx="427" cy="240" r="13" fill="#ffd400"/><text x="427" y="245" font-size="13" fill="#111">8</text><rect x="408" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="427" y="291.5" font-size="11.5" fill="#3a414a">Z5</text><circle cx="467" cy="240" r="13" fill="#ffd400"/><text x="467" y="245" font-size="13" fill="#111">9</text><rect x="448" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="467" y="291.5" font-size="11.5" fill="#3a414a">Z6</text><circle cx="507" cy="240" r="13" fill="#ffd400"/><text x="507" y="245" font-size="13" fill="#111">10</text><rect x="488" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="507" y="291.5" font-size="11.5" fill="#3a414a">Z7</text><circle cx="547" cy="240" r="13" fill="#ffd400"/><text x="547" y="245" font-size="13" fill="#111">11</text><rect x="528" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="547" y="291.5" font-size="11.5" fill="#3a414a">Z8</text><circle cx="587" cy="240" r="13" fill="#ffd400"/><text x="587" y="245" font-size="13" fill="#111">12</text><rect x="568" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="587" y="291.5" font-size="11.5" fill="#3a414a">-V</text><circle cx="627" cy="240" r="13" fill="#ffd400"/><text x="627" y="245" font-size="13" fill="#111">13</text><rect x="608" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="627" y="291.5" font-size="11.5" fill="#3a414a">YE</text><circle cx="666" cy="240" r="13" fill="#ffd400"/><text x="666" y="245" font-size="13" fill="#111">14</text><rect x="647" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="666" y="291.5" font-size="11.5" fill="#3a414a">OR</text><circle cx="706" cy="240" r="13" fill="#ffd400"/><text x="706" y="245" font-size="13" fill="#111">15</text><rect x="687" y="277" width="38" height="20" rx="4" fill="#ffd400" stroke="#9aa3ad" stroke-width="0.8"/><text x="706" y="291.5" font-size="11.5" fill="#111">A1</text><rect x="691" y="303" width="30" height="7" rx="3" fill="#6d4c41" stroke="#555" stroke-width="0.6"/><circle cx="746" cy="240" r="13" fill="#ffd400"/><text x="746" y="245" font-size="13" fill="#111">16</text><rect x="727" y="277" width="38" height="20" rx="4" fill="#ffd400" stroke="#9aa3ad" stroke-width="0.8"/><text x="746" y="291.5" font-size="11.5" fill="#111">ON</text><rect x="731" y="303" width="30" height="7" rx="3" fill="#f2c200" stroke="#555" stroke-width="0.6"/><circle cx="785" cy="240" r="13" fill="#ffd400"/><text x="785" y="245" font-size="13" fill="#111">17</text><rect x="766" y="277" width="38" height="20" rx="4" fill="#e9ecef" stroke="#9aa3ad" stroke-width="0.8"/><text x="785" y="291.5" font-size="11.5" fill="#3a414a">SLO</text></g></svg><figcaption>The bottom strip, screws 1–17 with their names. Yellow = a terminal the Shelly uses; the bar under it is the cable core colour.</figcaption></figure>
+<figure class="diagram" style="max-width:420px"><svg viewBox="0 0 374 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Left block with KEY marked"><image href="images/09a-panel-left-block.jpg" x="0" y="0" width="374" height="520"/><g font-family="Helvetica, Arial, sans-serif" font-weight="700"><circle cx="160" cy="120" r="11" fill="none" stroke="#ffd400" stroke-width="3"/><line x1="171" y1="120" x2="248" y2="120" stroke="#ffd400" stroke-width="2.5"/><rect x="248" y="108" width="104" height="24" rx="5" fill="#ffd400" stroke="#7d8793" stroke-width="0.8"/><text x="300" y="125" text-anchor="middle" font-size="14" fill="#111">KEY</text><circle cx="160" cy="151" r="11" fill="none" stroke="#ffffff" stroke-width="3"/><line x1="171" y1="151" x2="248" y2="151" stroke="#ffffff" stroke-width="2.5"/><rect x="248" y="139" width="104" height="24" rx="5" fill="#f4f6f8" stroke="#7d8793" stroke-width="0.8"/><text x="300" y="156" text-anchor="middle" font-size="14" fill="#3a414a">SIREN 1</text><circle cx="160" cy="182" r="11" fill="none" stroke="#ffffff" stroke-width="3"/><line x1="171" y1="182" x2="248" y2="182" stroke="#ffffff" stroke-width="2.5"/><rect x="248" y="170" width="104" height="24" rx="5" fill="#f4f6f8" stroke="#7d8793" stroke-width="0.8"/><text x="300" y="187" text-anchor="middle" font-size="14" fill="#3a414a">SIREN +</text><circle cx="160" cy="212" r="11" fill="none" stroke="#ffffff" stroke-width="3"/><line x1="171" y1="212" x2="248" y2="212" stroke="#ffffff" stroke-width="2.5"/><rect x="248" y="200" width="104" height="24" rx="5" fill="#f4f6f8" stroke="#7d8793" stroke-width="0.8"/><text x="300" y="217" text-anchor="middle" font-size="14" fill="#3a414a">SIREN 2</text><circle cx="160" cy="243" r="11" fill="none" stroke="#ff8a80" stroke-width="3"/><line x1="171" y1="243" x2="248" y2="243" stroke="#ff8a80" stroke-width="2.5"/><rect x="248" y="231" width="104" height="24" rx="5" fill="#fdecec" stroke="#7d8793" stroke-width="0.8"/><text x="300" y="248" text-anchor="middle" font-size="14" fill="#c62828">AC 16V</text><circle cx="160" cy="273" r="11" fill="none" stroke="#ff8a80" stroke-width="3"/><line x1="171" y1="273" x2="248" y2="273" stroke="#ff8a80" stroke-width="2.5"/><rect x="248" y="261" width="104" height="24" rx="5" fill="#fdecec" stroke="#7d8793" stroke-width="0.8"/><text x="300" y="278" text-anchor="middle" font-size="14" fill="#c62828">AC 16V</text><rect x="356" y="114" width="12" height="12" rx="3" fill="#ffffff" stroke="#555" stroke-width="1"/></g></svg><figcaption>The left block. <code>KEY</code> is the top screw (white core). Never connect anything to <code>AC 16V</code>.</figcaption></figure>
+<figure><img src="images/09-panel-board.jpg" alt="The AV-2008 panel board" loading="lazy"><figcaption>The AV-2008 board (V211A)</figcaption></figure>
+
+<h2 id="install">6. Installing in the cabinet</h2>
+<p>The connections were made with the 220V on and the battery disconnected, in two stages. The alarm's own breaker could not be found, and at 12V it is enough to work carefully with an insulated screwdriver, away from the transformer's 220V block.</p>
+<ol>
+  <li>The box went outside the steel cabinet, next to the electrical board, and the cable went inside.</li>
+  <li><strong>Stage A, power only:</strong> red to <a href="#terminals">screw 2</a>, black to screw 3. The Shelly's LED came on.</li>
+  <li><strong><a href="#setup">Shelly setup</a></strong> (next section), while <code>KEY</code>, <code>ON</code> and <code>A1</code> were still disconnected.</li>
+  <li><strong>OUT1 check:</strong> meter in continuity mode between the white core and screw 3. A tap in the app gave a 1-second beep.</li>
+  <li><strong>Stage B:</strong> white to <code>KEY</code>, yellow to screw 16 (<code>ON</code>), brown to screw 15 (<code>A1</code>).</li>
+  <li>The battery went back on, and the panel stayed disarmed.</li>
+</ol>
+<div class="gallery">
+  <figure><img src="images/10-battery-disconnected.jpg" alt="The battery with its red lead disconnected" loading="lazy"><figcaption>Battery disconnected before wiring</figcaption></figure>
+  <figure><img src="images/11-box-mounted.jpg" alt="The junction box mounted outside the cabinet, LED visible through the lid" loading="lazy"><figcaption>Mounted outside the cabinet</figcaption></figure>
+  <figure><img src="images/12-panel-wired.jpg" alt="The cable cores connected to the panel" loading="lazy"><figcaption>White to KEY, yellow and brown to the bottom strip</figcaption></figure>
+</div>
+
+<h2 id="setup">7. Shelly setup</h2>
+<p><strong>The settings only stuck once they were set directly from a computer on the same network.</strong> The first Save in the app didn't take, and both channels stayed in Toggle mode. The Shelly was added in the Shelly Smart Control app over Bluetooth, on the 2.4GHz Wi-Fi.</p>
+<div class="scroll"><table>
+  <tr><th>Setting</th><th>Before</th><th>After</th></tr>
+  <tr><td>Channel 1, input mode</td><td>follow (Toggle)</td><td>detached</td></tr>
+  <tr><td>Channel 1, power-on state</td><td>match the switch</td><td>off</td></tr>
+  <tr><td>Channel 1, Auto OFF</td><td>off</td><td>1 second</td></tr>
+  <tr><td>Channel 2, input mode + power-on</td><td>follow + match the switch</td><td>detached + off</td></tr>
+  <tr><td>Inputs 1 and 2</td><td>Switch, no name</td><td>Switch, Armed / Alarm</td></tr>
+</table></div>
+<div class="callout danger"><strong>Why Detached is critical</strong><p>In Toggle mode, the <code>ON</code> input would switch OUT1, and the panel would arm and disarm by itself.</p></div>
+<h3>Where these settings are in the app (version 3.77)</h3>
+<ul>
+  <li><strong>Detached and power-on default:</strong> device page, gear icon (Device settings), Input/output settings.</li>
+  <li><strong>Auto off:</strong> the plain clock icon (Timer). The clock icon with a + is the pulse counter; leave it alone.</li>
+  <li><strong>Armed state on the button:</strong> the double-gear icon (Application settings), Input state display.</li>
+  <li>After saving, reopen the page and check that the choice is still selected.</li>
+</ul>
+<div class="gallery phones">
+  <figure><img src="images/13-app-settings-before.jpg" alt="Input/output settings before the fix: Toggle" loading="lazy"><figcaption>Before: Toggle</figcaption></figure>
+  <figure><img src="images/14-app-settings-after.jpg" alt="Input/output settings after the fix: Detached and Turn OFF" loading="lazy"><figcaption>After: Detached, Turn OFF</figcaption></figure>
+  <figure><img src="images/15-app-timer.jpg" alt="Timer: Auto off after 1 second" loading="lazy"><figcaption>Auto off after 1 second</figcaption></figure>
+  <figure><img src="images/16-app-input-state-display.jpg" alt="Input state display switched on" loading="lazy"><figcaption>Input state display on</figcaption></figure>
+</div>
+
+<h2 id="notify">8. Phone notifications</h2>
+<p>Notifications don't come by themselves. Each one is a Scene in the app, which runs in the Shelly cloud. The app shows the Shelly as two cards: the first is <a href="#setup">channel 1</a>, the arm/disarm button; the second, marked "(2)", is channel 2, whose output is not connected.</p>
+<div class="scroll"><table>
+  <tr><th>Scene</th><th>When</th><th>Do</th><th>Status</th></tr>
+  <tr><td>Alarm</td><td>Input State 2, Turn on, Trigger</td><td>Notify action: "Alarm triggered!"</td><td>Working</td></tr>
+  <tr><td>Armed</td><td>Input State 1, Turn on, Trigger</td><td>Notify action: "Alarm armed"</td><td>Not set up yet</td></tr>
+  <tr><td>Disarmed</td><td>Input State 1, Turn off, Trigger</td><td>Notify action: "Alarm disarmed"</td><td>Not set up yet</td></tr>
+</table></div>
+<p>Tested: the Armed input switches on about a second after the arming tap and off after the disarming tap. On the first arming, the Alarm input also read on for about 2 seconds, so watch for a false "alarm" notification when arming.</p>
+<div class="gallery phones">
+  <figure><img src="images/17-app-scenes.jpg" alt="The scenes list with the alarm notification scene" loading="lazy"><figcaption>The alarm notification scene</figcaption></figure>
+  <figure><img src="images/18-app-dashboard.jpg" alt="The alarm card on the app dashboard" loading="lazy"><figcaption>The alarm card on the dashboard</figcaption></figure>
+</div>
+<figure class="video"><video controls muted playsinline preload="metadata" poster="video/alarm-demo-poster.jpg" aria-label="Screen recording of the alarm notification in the Shelly app"><source src="video/alarm-demo.mp4" type="video/mp4"></video><figcaption>Screen recording from the phone (23 seconds, no sound): the alarm scene, the dashboard card, and the "Alarm!" notification arriving.</figcaption></figure>
+
+<h2 id="limits">9. What this solution can't do</h2>
+<p>The Shelly acts like one key switch and two status lights. Everything else stays on the keypad, which talks to the panel over a closed data bus (<code>YE</code> / <code>OR</code>).</p>
+<ul>
+  <li>You can't see which zone triggered the alarm, only that it went off.</li>
+  <li>You can't change the panel's settings or programming (codes, delays, zones), the way the keypad can.</li>
+  <li>You can't arm with specific zones bypassed, or part-arm, as the keypad can (for example 075).</li>
+  <li>You can't see before arming whether a zone is open. The panel simply doesn't arm, and you only notice because no "armed" notification arrives.</li>
+  <li>There are no separate arm and disarm commands: every tap toggles.</li>
+  <li>No alerts for tamper, faults, low battery or the phone line. A power-cut alert is only possible through the optional voltmeter.</li>
+  <li>No panel event log, only the Shelly's activity log (when the inputs changed).</li>
+  <li>No user code: anyone with access to the Shelly account can disarm.</li>
+  <li>Remote control and notifications need Wi-Fi, internet and the Shelly cloud.</li>
+</ul>
+<p>For full control from the phone you need a newer panel with its own app, for example RISCO LightSYS+ or PIMA Force.</p>
+
+<h2 id="problems">10. Problems and fixes</h2>
+<div class="scroll"><table>
+  <tr><th>Problem</th><th>Cause</th><th>Fix</th></tr>
+  <tr><td>The original plan connected everything before setting up the app</td><td>A new Shelly has no Auto OFF, and its inputs are linked to the outputs</td><td><a href="#install">Two-stage wiring</a>: power and setup first, then KEY and the inputs</td></tr>
+  <tr><td>Green-to-black test read 500 Ω instead of 0</td><td>A rectifier diode in the power input</td><td><a href="#soldering">Test in diode mode</a> instead</td></tr>
+  <tr><td>An extra thin black wire on the Shelly</td><td>It is the Wi-Fi antenna</td><td>Left untouched, laid out in the box (<a href="#wiring">wiring plan</a>)</td></tr>
+  <tr><td>No 12V between screws 1 and 2</td><td>Screw 1 is Earth</td><td><a href="#terminals">Checked against both manuals</a>; A1 and ON moved to 15 and 16</td></tr>
+  <tr><td>The alarm's breaker could not be found</td><td>The battery keeps the panel on, or the breaker is on another board</td><td><a href="#install">Connected at 12V</a> with the battery disconnected</td></tr>
+  <tr><td>App settings did not save</td><td>Unknown</td><td><a href="#setup">Set from a computer</a> on the same network, and checked after a reboot</td></tr>
+</table></div>
+
+<h2 id="tips">11. Tips</h2>
+<ul>
+  <li><strong>Daily use:</strong> tap once, then wait for the notification. If nothing arrives within a minute, a door or window is probably open. Don't tap again "to make sure": a second tap disarms.</li>
+  <li><strong>Security:</strong> the Shelly account can now disarm the house. Use a strong password and two-factor authentication on the account, and set a password on the Shelly's local web interface.</li>
+  <li><strong>If the internet is down,</strong> remote control and notifications stop, but the alarm itself keeps working normally.</li>
+  <li><strong>Firmware:</strong> after any update, check that Detached, Turn OFF and Auto off are still set (<a href="#setup">section 7</a>).</li>
+</ul>
+<div class="callout warn"><strong>Safety</strong><p>The transformer in the alarm cabinet carries 220V AC. Don't open it or touch its terminal block. This page describes one specific installation; check your own panel's labels and manual before connecting anything.</p></div>
+<div class="callout warn" id="disclaimer"><strong>Disclaimer</strong><p>This page describes what I did on my own alarm system. It is not professional advice or an installation guide. I take no responsibility for any damage, injury or loss, or for what others do with this information. Working on alarm and electrical systems is at your own risk; if in doubt, use a qualified installer.</p></div>
+
+<h2 id="sources">12. Sources</h2>
+<ul>
+  <li><a href="https://www.av-gad.com/wp-content/uploads/2021/05/2008_217_edition-4.pdf">AV-GAD: EasyLoader AV-2005 / AV-2008 installation manual, v2.17</a>: page 13 (terminal order), page 62 (wiring diagram)</li>
+  <li>The printed AV-GAD EasyLoader manual, v2.12 (Hebrew): page 11, connection diagram. It is not available online; AV-GAD's English manuals are on its <a href="https://www.av-gad.com/av-gad-systems-technical-support/">technical support page</a>, including the <a href="https://www.av-gad.com/upload/support/upload_End%20User%20Manual%20ser%202000%20Rev%206.pdf_1.pdf">Series 2000 end-user manual</a>.</li>
+  <li><a href="https://www.shelly.com/blogs/documentation/shelly-plus-uni-web-interface-guide">Shelly Plus Uni Web Interface Guide</a></li>
+  <li><a href="https://shellyusa.atlassian.net/wiki/spaces/SUDADI/pages/718111096/Gate+Control+with+Shelly+Plus+Uni">Gate Control with Shelly Plus Uni</a>: Auto OFF, Detached, power-on state</li>
+</ul>
+
+<footer>
+  <p>© 2026 Shmilovitz. A personal home project, shared as-is. Not affiliated with AV-GAD or Shelly. See the <a href="#disclaimer">disclaimer</a>.</p>
+</footer>
+
+<script type="application/json" id="faq">[
+{
+"q": "How do I arm or disarm the alarm?",
+"k": "arm disarm tap button app toggle use",
+"a": "Tap \"Arm / Disarm\" once and wait for the notification. Each tap toggles, so don't tap twice.",
+"h": "#tips"
+},
+{
+"q": "Why didn't the alarm arm?",
+"k": "not arming refuses no notification open zone door window",
+"a": "A zone is probably open (a door or window). The panel only arms when its zones are closed; no \"armed\" notification within a minute means it didn't arm.",
+"h": "#problems"
+},
+{
+"q": "Which screw is +12V and which is -V?",
+"k": "+12V -V plus minus power screw 1 2 3 earth",
+"a": "Screw 2 is +12V and screw 3 is -V. Screw 1 is Earth, not +12V.",
+"h": "#terminals"
+},
+{
+"q": "Where is the KEY terminal?",
+"k": "KEY terminal screw left block top",
+"a": "KEY is the top screw of the vertical block on the left (marked KEY STR).",
+"h": "#terminals"
+},
+{
+"q": "Which screws are ON and A1?",
+"k": "ON A1 armed output alarm output screw 15 16",
+"a": "ON is screw 16 and A1 is screw 15 on the bottom strip.",
+"h": "#terminals"
+},
+{
+"q": "Which cable core goes where?",
+"k": "core colour color cable wire red black white yellow brown green",
+"a": "Red to +12V, black to -V, white to KEY, yellow to ON, brown to A1; green is a spare.",
+"h": "#wiring"
+},
+{
+"q": "Does it matter which OUT1 wire goes to KEY?",
+"k": "OUT1 wire polarity KEY swap",
+"a": "No. OUT1 is an isolated switch that works both ways; just use both wires of the same pair.",
+"h": "#wiring"
+},
+{
+"q": "Should the antenna wire be connected?",
+"k": "antenna thin black wire sleeve",
+"a": "No. The thin black wire with a sleeve on its tip is the Wi-Fi antenna; leave it untouched.",
+"h": "#wiring"
+},
+{
+"q": "Is 500 ohms between green and black normal?",
+"k": "500 ohm resistance green black diode test",
+"a": "Yes. There is a rectifier diode between them; test in the meter's diode mode instead.",
+"h": "#soldering"
+},
+{
+"q": "What Shelly settings are needed?",
+"k": "settings setup detached power-on auto off timer",
+"a": "Channel 1: input mode Detached, power-on state OFF, Auto off after 1 second.",
+"h": "#setup"
+},
+{
+"q": "Why must the input be Detached?",
+"k": "detached toggle input mode arms disarms itself",
+"a": "In Toggle mode the ON input would switch OUT1, and the panel would arm and disarm by itself.",
+"h": "#setup"
+},
+{
+"q": "How do I get a notification when the alarm goes off?",
+"k": "notification alert alarm scene notify push",
+"a": "Create a Scene: When Input State 2 turns on (Trigger), Do Notify action.",
+"h": "#notify"
+},
+{
+"q": "How do I get notified when it is armed or disarmed?",
+"k": "armed disarmed notification scene input 1",
+"a": "Two Scenes on Input State 1: Turn on for armed, Turn off for disarmed, each with a Notify action.",
+"h": "#notify"
+},
+{
+"q": "Can I see which zone triggered the alarm?",
+"k": "which zone triggered where alarm happened",
+"a": "No. The Shelly only knows that the alarm went off, not from which zone.",
+"h": "#limits"
+},
+{
+"q": "Can I bypass zones or part-arm from the phone?",
+"k": "bypass zone partial arm stay 075 keypad",
+"a": "No. Bypassing zones and partial arming stay on the keypad.",
+"h": "#limits"
+},
+{
+"q": "Can I change the panel settings from the app?",
+"k": "change settings programming codes delays keypad",
+"a": "No. Programming the panel (codes, delays, zones) is only possible from the keypad.",
+"h": "#limits"
+},
+{
+"q": "What happens if the internet or Wi-Fi is down?",
+"k": "internet wifi down offline cloud",
+"a": "Remote control and notifications stop, but the alarm itself keeps working normally.",
+"h": "#tips"
+},
+{
+"q": "Does it work during a power cut?",
+"k": "power cut outage battery 220V",
+"a": "The Shelly keeps running from the panel's battery, but remote control also needs the home Wi-Fi and internet to be up.",
+"h": "#idea"
+},
+{
+"q": "Why did I build this?",
+"k": "why reason purpose phone call disarm remotely",
+"a": "Sometimes the armed alarm went off and the system called, but there was no way to disarm it remotely; this panel can't be disarmed by phone call.",
+"h": "#why"
+},
+{
+"q": "How long did it take?",
+"k": "time hours long took week",
+"a": "About 5 hours investigating remote disarming with the existing panel, 5 hours planning the Shelly build, a week waiting for parts, and 5 hours building.",
+"h": "#time"
+},
+{
+"q": "What parts do I need?",
+"k": "parts buy shopping components list",
+"a": "A Shelly Plus Uni, a junction box, a 6-core cable, heat-shrink, a soldering iron and a multimeter.",
+"h": "#parts"
+},
+{
+"q": "Is it safe to work on the panel?",
+"k": "safety 220V transformer shock",
+"a": "The low-voltage side is 12V, but the transformer carries 220V AC: don't open it or touch its terminal block.",
+"h": "#tips"
+},
+{
+"q": "What tools do I need?",
+"k": "tools soldering iron station multimeter screwdriver stripper knife drill",
+"a": "A soldering station with helping hands, a heat source for the heat-shrink, a multimeter, small screwdrivers, a wire stripper, a utility knife and a drill.",
+"h": "#tools"
+}
+]</script>
+</body>
+</html>
